@@ -2,7 +2,7 @@
 
 Production-grade, open-source memory architecture for OpenClaw.
 
-[中文文档 / Chinese Docs](README.zh-CN.md) · [兼容链接](README_CN.md)
+[中文文档 / Chinese Docs](README.zh-CN.md)
 
 > This repository packages a practical memory system we run in production: incremental daily distillation, weekly consolidation, watchdog-based reliability, and QMD indexing.
 
