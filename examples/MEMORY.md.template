@@ -1,0 +1,20 @@
+# Long-Term Memory
+
+> Keep only durable, high-value facts.
+> Hard cap recommended: 80 lines / 5KB.
+
+## User Preferences
+- Preferred language
+- Communication style
+- Tooling defaults
+
+## Active Projects
+- Project A: status
+- Project B: status
+
+## Key Decisions
+- Decision and rationale
+
+## Operational Constraints
+- Security boundaries
+- Notification rules
