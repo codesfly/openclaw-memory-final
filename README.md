@@ -60,4 +60,4 @@ MIT — see [`LICENSE`](LICENSE).
 
 ## Chinese README
 
-中文说明见 [`README_CN.md`](README_CN.md).
+中文说明见 [`README.zh-CN.md`](README.zh-CN.md)（兼容链接：[`README_CN.md`](README_CN.md)）。
