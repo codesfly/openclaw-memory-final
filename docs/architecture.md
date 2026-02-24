@@ -4,37 +4,24 @@
 
 ```mermaid
 flowchart TD
-  U[User Sessions
-Direct/Group] --> DS[Daily Sync
-memory-sync-daily
-23:00]
-  DS --> F[Fingerprint Idempotency
-processed-sessions.json]
-  F --> DLOG[memory/YYYY-MM-DD.md
-append-only today]
-  DLOG --> Q1[QMD update
-daily]
+  U["User sessions direct group"] --> DS["Daily sync 23 00"]
+  DS --> F["Fingerprint idempotency state"]
+  F --> DLOG["Daily memory log append only"]
+  DLOG --> Q1["QMD update daily"]
 
-  DLOG --> WT[Weekly Tidy
-memory-weekly-tidy
-Sun 22:00]
-  WT --> LM[MEMORY.md
-curated long-term]
-  WT --> WS[memory/weekly/YYYY-MM-DD.md]
-  WT --> AR[memory/archive/YYYY/]
-  WT --> Q2[QMD update + embed
-weekly]
+  DLOG --> WT["Weekly tidy Sun 22 00"]
+  WT --> LM["Long term memory file"]
+  WT --> WS["Weekly summary file"]
+  WT --> AR["Archive old daily logs"]
+  WT --> Q2["QMD update and embed weekly"]
 
-  WD[Watchdog
-memory-cron-watchdog
-*/2h @ :15] --> CJ[(Cron Jobs State)]
-  CJ --> ST[memory-watchdog-state.json
-consecutive anomalies + last3]
-  ST --> DEC{anomaly >= 2?}
-  DEC -- no --> SKIP[ANNOUNCE_SKIP]
-  DEC -- yes --> ALERT[Send alert
-(optional ops target)]
+  WD["Watchdog every 2 hours"] --> CJ["Cron jobs state"]
+  CJ --> ST["Watchdog state counters and last3"]
+  ST --> DEC{"anomaly count >= 2"}
+  DEC -- No --> SKIP["announce skip"]
+  DEC -- Yes --> ALERT["send optional alert"]
 ```
+
 
 ## 1) Design goals
 

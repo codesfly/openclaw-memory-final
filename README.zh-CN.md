@@ -24,17 +24,17 @@ bash scripts/install-ai.sh --tz Asia/Shanghai
 
 ```mermaid
 flowchart LR
-  S[会话输入] --> A[memory-sync-daily]
-  A --> B[processed-sessions.json]
-  B --> C[memory/YYYY-MM-DD.md]
-  C --> D[memory-weekly-tidy]
-  D --> E[MEMORY.md + weekly + archive]
-  C --> F[qmd update]
-  D --> G[qmd update + embed]
-  H[memory-cron-watchdog] --> I[健康检查 + last3]
-  I --> J{连续2次异常?}
-  J -- 否 --> K[不告警]
-  J -- 是 --> L[告警(可选)]
+  S["会话输入"] --> A["每日同步任务"]
+  A --> B["去重状态 processed sessions"]
+  B --> C["当日日志 memory YYYY MM DD"]
+  C --> D["每周精炼任务"]
+  D --> E["长期记忆 周摘要 归档"]
+  C --> F["qmd update"]
+  D --> G["qmd update and embed"]
+  H["watchdog"] --> I["健康检查 与 最近三次快照"]
+  I --> J{"连续异常次数 >= 2"}
+  J -- 否 --> K["不告警"]
+  J -- 是 --> L["发送可选告警"]
 ```
 
 详版见：[`docs/architecture.md`](docs/architecture.md)

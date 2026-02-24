@@ -28,17 +28,17 @@ See deterministic prompt: [`docs/ai-agent-prompt.md`](docs/ai-agent-prompt.md)
 
 ```mermaid
 flowchart LR
-  S[Sessions] --> A[memory-sync-daily]
-  A --> B[processed-sessions.json]
-  B --> C[memory/YYYY-MM-DD.md]
-  C --> D[memory-weekly-tidy]
-  D --> E[MEMORY.md + weekly + archive]
-  C --> F[qmd update]
-  D --> G[qmd update + embed]
-  H[memory-cron-watchdog] --> I[health checks + last3]
-  I --> J{2 consecutive anomalies?}
-  J -- no --> K[no alert]
-  J -- yes --> L[alert (optional)]
+  S["Sessions"] --> A["memory sync daily"]
+  A --> B["processed sessions state"]
+  B --> C["daily memory log"]
+  C --> D["memory weekly tidy"]
+  D --> E["long term memory weekly archive"]
+  C --> F["qmd update"]
+  D --> G["qmd update and embed"]
+  H["memory cron watchdog"] --> I["health checks and last3 snapshots"]
+  I --> J{"anomaly count >= 2"}
+  J -- No --> K["skip alert"]
+  J -- Yes --> L["send optional alert"]
 ```
 
 Detailed view: [`docs/architecture.md`](docs/architecture.md)
