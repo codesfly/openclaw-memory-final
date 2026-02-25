@@ -26,10 +26,10 @@ get_ids() {
   local name="$1"
   local json
   json="$(run_oc cron list --json 2>/dev/null || echo '{"jobs":[]}')"
-  python3 - "$name" <<'PY' <<<"$json"
-import json, sys
+  LIST_JOBS_JSON="$json" python3 - "$name" <<'PY'
+import json, os, sys
 name=sys.argv[1]
-raw=sys.stdin.read().strip() or '{"jobs":[]}'
+raw=os.environ.get("LIST_JOBS_JSON", "").strip() or '{"jobs":[]}'
 try:
     data=json.loads(raw)
 except Exception:

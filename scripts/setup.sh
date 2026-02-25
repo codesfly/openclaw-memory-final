@@ -95,10 +95,10 @@ get_job_ids_by_name() {
   local name="$1"
   local json
   json="$(list_jobs_json)"
-  python3 - "$name" <<'PY' <<<"$json"
-import json, sys
+  LIST_JOBS_JSON="$json" python3 - "$name" <<'PY'
+import json, os, sys
 name = sys.argv[1]
-raw = sys.stdin.read().strip() or '{"jobs":[]}'
+raw = os.environ.get("LIST_JOBS_JSON", "").strip() or '{"jobs":[]}'
 try:
     data = json.loads(raw)
 except Exception:
@@ -197,11 +197,11 @@ fi
 
 JOBS_JSON="$(list_jobs_json)"
 if [[ "$PRINT_JSON" -eq 1 ]]; then
-  python3 - "$TZ_VALUE" "$WORKSPACE" "$QMD_PATH" "$OPS_CHANNEL" "$OPS_ACCOUNT" "$OPS_TARGET" <<'PY' <<<"$JOBS_JSON"
-import json, sys, os
+  LIST_JOBS_JSON="$JOBS_JSON" python3 - "$TZ_VALUE" "$WORKSPACE" "$QMD_PATH" "$OPS_CHANNEL" "$OPS_ACCOUNT" "$OPS_TARGET" <<'PY'
+import json, os, sys
 
 tz, workspace, qmd, ops_channel, ops_account, ops_target = sys.argv[1:]
-raw = sys.stdin.read().strip() or '{"jobs":[]}'
+raw = os.environ.get("LIST_JOBS_JSON", "").strip() or '{"jobs":[]}'
 try:
     data = json.loads(raw)
 except Exception:

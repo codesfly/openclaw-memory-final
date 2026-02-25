@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2026-02-25
+
+### Fixed
+- Fixed `scripts/setup.sh` JSON parsing bug caused by heredoc + here-string conflict (`NameError: true`) in Python helpers.
+- Fixed `scripts/uninstall.sh` same parsing pattern causing potential job-id lookup failure.
+
+### Impact
+- `setup.sh --print-json` now works reliably.
+- `setup.sh --force-recreate` no longer risks duplicate `memory-*` cron jobs from false-negative existence checks.
+- `uninstall.sh` now removes target memory cron jobs deterministically.
+
 ## [0.2.2] - 2026-02-25
 
 ### Added
