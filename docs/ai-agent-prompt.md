@@ -31,6 +31,11 @@ https://github.com/codesfly/openclaw-memory-final
 - 不执行外发消息（除非我明确提供 ops target）
 - 不做全量 config.apply 覆盖
 - 子 agent 原始执行过程保留在会话历史；长期记忆仅沉淀 task card 结论
+
+可选增强（AI 友好）：
+- 若仓库存在 `examples/skills/openclaw-skills-pack-*.tar.gz`，将其解压到 `<workspace>/skills`。
+- 执行 `openclaw skills list --eligible` 验证技能可见。
+- 提醒用户：skills 在新会话生效（session snapshot）。
 ```
 
 ## Why this is AI-friendly

@@ -88,6 +88,28 @@ bash scripts/install-ai.sh --tz Asia/Shanghai
 openclaw gateway restart
 ```
 
+## 可选：安装 AI 友好的 workspace skills 包
+
+如果你希望在“记忆沉淀 / cron 诊断 / 发布流程”上获得更稳定的一致行为，可安装 [`examples/skills/`](examples/skills/) 中的技能包：
+
+```bash
+mkdir -p ~/.openclaw/workspace/skills
+cd ~/.openclaw/workspace/skills
+tar -xzf <path-to>/openclaw-skills-pack-v2026-02-25.tar.gz
+openclaw skills list --eligible
+```
+
+包含技能：
+- `memory-task-card`
+- `cron-doctor`
+- `long-task-async`
+- `github-release-flow`
+- `heartbeat-ops-check`
+- `trading-stack-autorepair`
+
+说明：
+- 安装后建议开启新会话（skills 按会话快照加载）。
+- workspace skills 优先级最高（高于 managed/bundled）。
 
 ## 安全部署说明
 

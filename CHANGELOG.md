@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-02-25
+
+### Added
+- AI-friendly workspace skills pack under `examples/skills/`:
+  - `memory-task-card.skill`
+  - `cron-doctor.skill`
+  - `long-task-async.skill`
+  - `github-release-flow.skill`
+  - `heartbeat-ops-check.skill`
+  - `trading-stack-autorepair.skill`
+- Combined archive: `openclaw-skills-pack-v2026-02-25.tar.gz`.
+- `examples/skills/README.md` with install + verification steps.
+
+### Changed
+- README (EN/ZH) now documents optional skills-pack install flow.
+- `docs/ai-agent-prompt.md` now includes optional skills-pack bootstrap for AI agents.
+
 ## [0.2.0] - 2026-02-25
 
 ### Added

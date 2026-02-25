@@ -85,6 +85,28 @@ Then:
 openclaw gateway restart
 ```
 
+## Optional: Install AI-friendly workspace skills pack
+
+If you want deterministic behavior for memory/cron/release workflows, install the bundled skills from [`examples/skills/`](examples/skills/):
+
+```bash
+mkdir -p ~/.openclaw/workspace/skills
+cd ~/.openclaw/workspace/skills
+tar -xzf <path-to>/openclaw-skills-pack-v2026-02-25.tar.gz
+openclaw skills list --eligible
+```
+
+Included skills:
+- `memory-task-card`
+- `cron-doctor`
+- `long-task-async`
+- `github-release-flow`
+- `heartbeat-ops-check`
+- `trading-stack-autorepair`
+
+Notes:
+- Start a **new session** after install (skills are snapshotted per session).
+- Workspace skills take precedence over bundled/managed skills.
 
 ## Safe Deployment Notes
 
