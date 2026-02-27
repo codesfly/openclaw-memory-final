@@ -35,49 +35,30 @@ See deterministic prompt: [`docs/ai-agent-prompt.md`](docs/ai-agent-prompt.md)
 
 ```mermaid
 flowchart LR
-  U["Users & Channels<br/>用户与多渠道会话"] --> M["Main Session / 主会话协调器"]
-  U --> SA["Sub-agent Sessions / 子Agent隔离会话"]
+  U["Users & Channels<br/>用户与多渠道"] --> M["Main Session<br/>主会话"]
+  U --> SA["Sub-agents (Isolated)<br/>子Agent（隔离）"]
 
-  subgraph L1["Capture & Handoff / 采集与交接层"]
-    CS["CURRENT_STATE.md<br/>Short-term Workspace / 短期工作台"]
-    DL["memory/YYYY-MM-DD.md<br/>Daily Log (append-only) / 日志只追加"]
-    TI["memory/tasks/YYYY-MM-DD.md<br/>Task Cards / 结果卡"]
-    SH["Isolated Session History / 隔离原始轨迹"]
-  end
+  M --> CS["CURRENT_STATE<br/>短期工作台"]
+  M --> DL["Daily Log<br/>日记忆日志"]
+  M --> TC["Task Cards<br/>任务结果卡"]
+  SA --> TC
 
-  M --> CS
-  M --> DL
-  M --> TI
-  SA --> SH
-  SA --> TI
+  DL --> SYNC["Daily Sync<br/>每日蒸馏"]
+  TC --> SYNC
+  SYNC --> CUR["Idempotency Cursor<br/>幂等游标"]
 
-  subgraph L2["Consolidation / 提炼层"]
-    DS["memory-sync-daily<br/>Daily Distillation / 日蒸馏"]
-    WT["memory-weekly-tidy<br/>Weekly Consolidation / 周精炼"]
-    PS["processed-sessions.json<br/>Idempotency Cursor / 幂等游标"]
-    LM["MEMORY.md + weekly summary + archive<br/>长期记忆 / 周报 / 归档"]
-  end
+  DL --> TIDY["Weekly Tidy<br/>每周精炼"]
+  TC --> TIDY
+  TIDY --> LM["Long-term Memory<br/>长期记忆 + 周报 + 归档"]
 
-  DL --> DS
-  TI --> DS
-  DS --> PS
-  DL --> WT
-  TI --> WT
-  WT --> LM
+  TC --> RET["Task-first Retrieval<br/>先查任务卡"]
+  RET --> SEM["Semantic Search<br/>语义检索"]
 
-  subgraph L3["Retrieval & Reliability / 检索与可靠性层"]
-    R1["Task-first Retrieval / 先查任务卡"]
-    R2["Semantic Search / 语义检索"]
-    Q1["QMD update (daily)"]
-    Q2["QMD update + embed (weekly)"]
-    WD["memory-cron-watchdog<br/>2-hit anomaly confirmation / 连续2次异常确认"]
-  end
+  SYNC --> Q1["QMD update"]
+  TIDY --> Q2["QMD update + embed"]
 
-  TI --> R1 --> R2
-  DS --> Q1
-  WT --> Q2
-  WD --> DS
-  WD --> WT
+  WD["Watchdog<br/>稳定性守护"] --> SYNC
+  WD --> TIDY
 ```
 
 Detailed view: [`docs/architecture.md`](docs/architecture.md)
