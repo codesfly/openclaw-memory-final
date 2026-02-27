@@ -31,14 +31,25 @@ bash scripts/install-ai.sh --tz Asia/Shanghai
 
 ```mermaid
 flowchart LR
-  S["会话输入"] --> CS["CURRENT_STATE 短期工作台"]
-  CS --> A["每日同步任务"]
+  S["会话输入"] --> M["主会话"]
+  S --> SA["子agent会话（隔离）"]
+
+  M --> CS["CURRENT_STATE 短期工作台"]
+  M --> C["当日日志 memory YYYY MM DD"]
+
+  SA --> SH["原始过程保留在隔离历史"]
+  SA --> T["任务索引 memory tasks"]
+  M --> T
+
+  C --> A["每日同步任务"]
+  T --> A
   A --> B["去重状态 processed sessions"]
-  B --> C["当日日志 memory YYYY MM DD"]
-  A --> T["任务索引 memory tasks"]
-  T --> R["检索优先读任务卡"]
   C --> D["每周精炼任务"]
   T --> D
+
+  T --> R["检索优先读任务卡"]
+  R --> RS["语义记忆检索"]
+
   D --> E["长期记忆 周摘要 归档"]
   C --> F["qmd update"]
   D --> G["qmd update and embed"]

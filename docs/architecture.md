@@ -4,13 +4,23 @@
 
 ```mermaid
 flowchart TD
-  U["User sessions direct group"] --> CS["CURRENT_STATE short-term workspace"]
-  CS --> DS["Daily sync 23 00"]
+  U["User sessions"] --> M["Main session"]
+  U --> SA["Sub-agent sessions isolated"]
+
+  M --> CS["CURRENT_STATE short-term workspace"]
+  M --> DLOG["Daily memory log append only"]
+
+  SA --> SH["Raw traces in isolated history"]
+  SA --> TIDX["Task memory index by day"]
+  M --> TIDX
+
+  DLOG --> DS["Daily sync 23 00"]
+  TIDX --> DS
   DS --> F["Fingerprint idempotency state"]
-  F --> DLOG["Daily memory log append only"]
-  DS --> TIDX["Task memory index by day"]
+  DS --> Q1["QMD update daily"]
+
   TIDX --> RET["retrieve task cards first"]
-  DLOG --> Q1["QMD update daily"]
+  RET --> SEM["semantic memory search"]
 
   DLOG --> WT["Weekly tidy Sun 22 00"]
   TIDX --> WT

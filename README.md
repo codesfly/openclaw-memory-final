@@ -35,14 +35,25 @@ See deterministic prompt: [`docs/ai-agent-prompt.md`](docs/ai-agent-prompt.md)
 
 ```mermaid
 flowchart LR
-  S["Sessions"] --> CS["CURRENT_STATE short-term workspace"]
-  CS --> A["memory sync daily"]
+  S["Sessions"] --> M["Main session"]
+  S --> SA["Sub-agent sessions isolated"]
+
+  M --> CS["CURRENT_STATE short-term workspace"]
+  M --> C["daily memory log"]
+
+  SA --> SH["raw traces in isolated history"]
+  SA --> T["task memory index"]
+  M --> T
+
+  C --> A["memory sync daily"]
+  T --> A
   A --> B["processed sessions state"]
-  B --> C["daily memory log"]
-  A --> T["task memory index"]
-  T --> R["task-first retrieval"]
   C --> D["memory weekly tidy"]
   T --> D
+
+  T --> R["task-first retrieval"]
+  R --> RS["semantic memory search"]
+
   D --> E["long term memory weekly archive"]
   C --> F["qmd update"]
   D --> G["qmd update and embed"]
