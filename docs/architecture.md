@@ -39,6 +39,14 @@ flowchart LR
 
 ## 2) Pipeline
 
+### Context Budget + Dynamic Injection (V1)
+- Define profile-based context sources in `memory/context-profiles.json`.
+- Apply hard budgets before injection:
+  - per-file cap (default `20000` chars)
+  - total cap (default `80000` chars)
+- Build context pack by priority (`main/ops/btc/quant`) to prevent prompt bloat.
+- This ensures stable latency and reduces long silent stalls.
+
 ### Short-term Workspace (CURRENT_STATE)
 - Keep `memory/CURRENT_STATE.md` as the active workbench for today.
 - This file is the first rescue point after compaction/context reset.
@@ -90,6 +98,12 @@ flowchart LR
   - short-term workbench for main session; first read target after compaction/reset
 - `memory/INDEX.md`
   - navigation entry for long-term/daily/task/state/archive paths
+- `memory/state/context-budget-state.json`
+  - latest budget check result from `memory_context_budget_guard.py`
+- `memory/state/memory-conflict-report.json`
+  - latest durable-rule conflict scan from `memory_conflict_check.py`
+- `memory/state/memory-retrieval-watchdog-state.json`
+  - retrieval health state (`consecutive_anomalies`, `pending_embeddings`, `confirmed`)
 
 ## 4) QMD strategy
 

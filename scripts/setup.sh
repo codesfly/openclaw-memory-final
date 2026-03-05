@@ -78,8 +78,14 @@ fi
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-mkdir -p "$WORKSPACE/memory/weekly" "$WORKSPACE/memory/archive/$(date +%Y)" "$WORKSPACE/memory/state" "$WORKSPACE/memory/tasks" "$WORKSPACE/scripts"
+mkdir -p \
+  "$WORKSPACE/memory/weekly" \
+  "$WORKSPACE/memory/archive/$(date +%Y)" \
+  "$WORKSPACE/memory/state" \
+  "$WORKSPACE/memory/tasks" \
+  "$WORKSPACE/scripts"
 
+# Baseline/state files
 if [[ ! -f "$WORKSPACE/memory/state/processed-sessions.json" ]]; then
   cp "$REPO_ROOT/examples/memory/state/processed-sessions.json" "$WORKSPACE/memory/state/processed-sessions.json"
 fi
@@ -92,13 +98,24 @@ fi
 if [[ ! -f "$WORKSPACE/memory/INDEX.md" ]]; then
   cp "$REPO_ROOT/examples/memory-INDEX.md.template" "$WORKSPACE/memory/INDEX.md"
 fi
-if [[ ! -f "$WORKSPACE/scripts/mem-log.sh" ]]; then
-  cp "$REPO_ROOT/scripts/mem-log.sh" "$WORKSPACE/scripts/mem-log.sh"
+if [[ ! -f "$WORKSPACE/memory/context-profiles.json" ]]; then
+  cp "$REPO_ROOT/examples/memory/context-profiles.json" "$WORKSPACE/memory/context-profiles.json"
 fi
-if [[ ! -f "$WORKSPACE/scripts/memory-reflect.sh" ]]; then
-  cp "$REPO_ROOT/scripts/memory-reflect.sh" "$WORKSPACE/scripts/memory-reflect.sh"
-fi
-chmod +x "$WORKSPACE/scripts/mem-log.sh" "$WORKSPACE/scripts/memory-reflect.sh"
+
+# Helper scripts
+for f in mem-log.sh memory-reflect.sh \
+  memory_context_budget_guard.py memory_context_pack.py memory_conflict_check.py memory_retrieval_watchdog.py; do
+  if [[ ! -f "$WORKSPACE/scripts/$f" ]]; then
+    cp "$REPO_ROOT/scripts/$f" "$WORKSPACE/scripts/$f"
+  fi
+done
+chmod +x \
+  "$WORKSPACE/scripts/mem-log.sh" \
+  "$WORKSPACE/scripts/memory-reflect.sh" \
+  "$WORKSPACE/scripts/memory_context_budget_guard.py" \
+  "$WORKSPACE/scripts/memory_context_pack.py" \
+  "$WORKSPACE/scripts/memory_conflict_check.py" \
+  "$WORKSPACE/scripts/memory_retrieval_watchdog.py"
 
 list_jobs_json() {
   run_oc cron list --json 2>/dev/null || echo '{"jobs":[]}'
@@ -147,11 +164,19 @@ WEEKLY_MSG="MEMORY WEEKLY TIDY — 你是每周记忆巩固 agent。聚合近7�
 
 if [[ -n "$OPS_TARGET" ]]; then
   WATCHDOG_NOTIFY="若confirmed anomaly，使用message工具发送到 $OPS_CHANNEL（accountId=$OPS_ACCOUNT, target=$OPS_TARGET），并附异常项/连续次数/自愈动作/最近3次快照。"
+  RETRIEVAL_NOTIFY="仅当 confirmed=true 时，用message工具发送到 $OPS_CHANNEL（accountId=$OPS_ACCOUNT, target=$OPS_TARGET），并附 anomalies / consecutive_anomalies / pending_embeddings。"
+  NIGHTLY_NOTIFY="失败时用message工具发送到 $OPS_CHANNEL（accountId=$OPS_ACCOUNT, target=$OPS_TARGET），包含失败步骤、错误摘要、pending值。"
 else
   WATCHDOG_NOTIFY="若confirmed anomaly，记录状态并回复ANNOUNCE_SKIP（未配置外部告警目标）。"
+  RETRIEVAL_NOTIFY="仅当 confirmed=true 时记录状态并回复ANNOUNCE_SKIP（未配置外部告警目标）。"
+  NIGHTLY_NOTIFY="失败时记录状态并回复ANNOUNCE_SKIP（未配置外部告警目标）。"
 fi
 
-WATCHDOG_MSG="你是memory watchdog。检查memory-sync-daily与memory-weekly-tidy是否enabled、lastStatus非error/failed、且未stale。维护memory/state/memory-watchdog-state.json中的consecutiveAnomalies和last3快照。仅连续2次异常才算confirmed anomaly；首轮异常只计数不告警。$WATCHDOG_NOTIFY 完成回复ANNOUNCE_SKIP。"
+WATCHDOG_MSG="你是memory watchdog。检查 memory-sync-daily / memory-weekly-tidy / memory-retrieval-watchdog-v1 / memory-qmd-nightly-maintain 是否 enabled、lastStatus 非 error/failed、且未 stale。维护 memory/state/memory-watchdog-state.json 的 consecutiveAnomalies 与 last3 快照。仅连续2次异常才算 confirmed anomaly；首轮异常只计数不告警。$WATCHDOG_NOTIFY 完成回复ANNOUNCE_SKIP。"
+
+RETRIEVAL_WATCHDOG_MSG="你是 memory retrieval watchdog。执行：python3 $WORKSPACE/scripts/memory_retrieval_watchdog.py --qmd-path $QMD_PATH。读取 $WORKSPACE/memory/state/memory-retrieval-watchdog-state.json。规则：healthy 或 FIRST_ANOMALY（未confirmed）时回复 ANNOUNCE_SKIP；$RETRIEVAL_NOTIFY 发送后回复 ANNOUNCE_SKIP。"
+
+NIGHTLY_MAINTAIN_MSG="你是 memory maintenance agent。每天执行一次 QMD 维护（低噪声）：1) QMD_GPU=cpu $QMD_PATH update；2) QMD_GPU=cpu $QMD_PATH status 并解析 Pending；3) 若 Pending>=30 再执行 QMD_GPU=cpu $QMD_PATH embed；4) 再次 status 复查。成功且无异常则 ANNOUNCE_SKIP。$NIGHTLY_NOTIFY 完成后回复 ANNOUNCE_SKIP。"
 
 ensure_job() {
   local name="$1"
@@ -200,6 +225,26 @@ ensure_job "memory-cron-watchdog" \
   --no-deliver \
   --message "$WATCHDOG_MSG"
 
+ensure_job "memory-retrieval-watchdog-v1" \
+  --name "memory-retrieval-watchdog-v1" \
+  --cron "*/30 * * * *" \
+  --tz "$TZ_VALUE" \
+  --session isolated \
+  --agent main \
+  --timeout-seconds 300 \
+  --no-deliver \
+  --message "$RETRIEVAL_WATCHDOG_MSG"
+
+ensure_job "memory-qmd-nightly-maintain" \
+  --name "memory-qmd-nightly-maintain" \
+  --cron "20 3 * * *" \
+  --tz "$TZ_VALUE" \
+  --session isolated \
+  --agent main \
+  --timeout-seconds 1800 \
+  --no-deliver \
+  --message "$NIGHTLY_MAINTAIN_MSG"
+
 if [[ "$SKIP_HEALTHCHECK" -eq 0 ]]; then
   if ! run_oc status >/dev/null 2>&1; then
     echo "⚠ gateway postcheck failed: openclaw status timeout/error" >&2
@@ -219,28 +264,36 @@ try:
     data = json.loads(raw)
 except Exception:
     data = {"jobs": []}
-want = {"memory-sync-daily", "memory-weekly-tidy", "memory-cron-watchdog"}
+want = {
+    "memory-sync-daily",
+    "memory-weekly-tidy",
+    "memory-cron-watchdog",
+    "memory-retrieval-watchdog-v1",
+    "memory-qmd-nightly-maintain",
+}
 installed = []
 for job in data.get("jobs", []):
     if job.get("name") in want:
         state = job.get("state", {})
-        installed.append({
-            "name": job.get("name"),
-            "id": job.get("id"),
-            "enabled": job.get("enabled"),
-            "nextRunAtMs": state.get("nextRunAtMs"),
-            "lastStatus": state.get("lastStatus")
-        })
+        installed.append(
+            {
+                "name": job.get("name"),
+                "id": job.get("id"),
+                "enabled": job.get("enabled"),
+                "nextRunAtMs": state.get("nextRunAtMs"),
+                "lastStatus": state.get("lastStatus"),
+            }
+        )
 
 result = {
-    "ok": len(installed) == 3,
+    "ok": len(installed) == 5,
     "timezone": tz,
     "workspace": workspace,
     "qmdPath": qmd,
     "watchdogTarget": {
         "channel": ops_channel,
         "accountId": ops_account,
-        "target": ops_target if ops_target else None
+        "target": ops_target if ops_target else None,
     },
     "stateFiles": {
         "processedSessions": os.path.isfile(os.path.join(workspace, "memory/state/processed-sessions.json")),
@@ -248,10 +301,15 @@ result = {
         "taskMemoryDir": os.path.isdir(os.path.join(workspace, "memory/tasks")),
         "currentState": os.path.isfile(os.path.join(workspace, "memory/CURRENT_STATE.md")),
         "memoryIndex": os.path.isfile(os.path.join(workspace, "memory/INDEX.md")),
+        "contextProfiles": os.path.isfile(os.path.join(workspace, "memory/context-profiles.json")),
         "memLogScript": os.path.isfile(os.path.join(workspace, "scripts/mem-log.sh")),
-        "memoryReflectScript": os.path.isfile(os.path.join(workspace, "scripts/memory-reflect.sh"))
+        "memoryReflectScript": os.path.isfile(os.path.join(workspace, "scripts/memory-reflect.sh")),
+        "contextBudgetGuard": os.path.isfile(os.path.join(workspace, "scripts/memory_context_budget_guard.py")),
+        "contextPack": os.path.isfile(os.path.join(workspace, "scripts/memory_context_pack.py")),
+        "conflictCheck": os.path.isfile(os.path.join(workspace, "scripts/memory_conflict_check.py")),
+        "retrievalWatchdog": os.path.isfile(os.path.join(workspace, "scripts/memory_retrieval_watchdog.py")),
     },
-    "jobs": sorted(installed, key=lambda x: x["name"])
+    "jobs": sorted(installed, key=lambda x: x["name"]),
 }
 print(json.dumps(result, ensure_ascii=False))
 PY

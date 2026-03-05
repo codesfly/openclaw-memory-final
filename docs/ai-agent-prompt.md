@@ -17,9 +17,11 @@ https://github.com/codesfly/openclaw-memory-final
    - 再重试：`bash scripts/install-ai.sh --tz Asia/Shanghai --qmd-path "$(command -v qmd)"`
 4) 若成功，必须输出 install-ai.sh 返回的 JSON 原文
 5) 再执行一次核验：
-   - openclaw cron list（确认存在 memory-sync-daily / memory-weekly-tidy / memory-cron-watchdog）
+   - openclaw cron list（确认存在 memory-sync-daily / memory-weekly-tidy / memory-cron-watchdog / memory-retrieval-watchdog-v1 / memory-qmd-nightly-maintain）
    - 检查 `~/.openclaw/workspace/memory/state/processed-sessions.json`
    - 检查 `~/.openclaw/workspace/memory/state/memory-watchdog-state.json`
+   - 检查 `~/.openclaw/workspace/memory/context-profiles.json`
+   - 执行 `python3 ~/.openclaw/workspace/scripts/memory_context_budget_guard.py --profile main`
 6) 若存在子 agent 任务，补充生成结果卡：`~/.openclaw/workspace/memory/tasks/YYYY-MM-DD.md`
    - 仅写结论，不粘贴完整执行日志
    - 字段至少包含：任务目标、边界、验收、关键动作、产物路径、最终状态、下一步
@@ -35,6 +37,7 @@ https://github.com/codesfly/openclaw-memory-final
 - 不执行外发消息（除非我明确提供 ops target）
 - 不做全量 config.apply 覆盖
 - 子 agent 原始执行过程保留在会话历史；长期记忆仅沉淀 task card 结论
+- 必须启用“记忆注入预算”硬约束（每文件/总量双阈值）
 
 可选增强（AI 友好）：
 - 优先执行 `bash scripts/install-skills-pack.sh` 安装 skills 包。

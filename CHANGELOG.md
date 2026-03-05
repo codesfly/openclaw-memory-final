@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Memory context budget + dynamic profile injection V1:
+  - `examples/memory/context-profiles.json`
+  - `scripts/memory_context_budget_guard.py`
+  - `scripts/memory_context_pack.py`
+- Durable-memory conflict checker:
+  - `scripts/memory_conflict_check.py`
+- Retrieval health watchdog:
+  - `scripts/memory_retrieval_watchdog.py`
+- Setup now installs two additional cron jobs:
+  - `memory-retrieval-watchdog-v1` (every 30 minutes)
+  - `memory-qmd-nightly-maintain` (daily 03:20)
+
+### Changed
+- `scripts/setup.sh` now bootstraps context profile + 4 new scripts into workspace.
+- `scripts/uninstall.sh` now removes all 5 `memory-*` cron jobs created by setup.
+- `scripts/validate.sh` now validates Python syntax for new scripts and JSON for `context-profiles`.
+- README (EN/ZH), architecture/operations/ai-agent-prompt docs updated for V1 memory upgrades.
+- `examples/AGENTS-memory-section.md` adds budget/profile/conflict-check guidance.
+
 ## [0.3.0] - 2026-02-27
 
 ### Added

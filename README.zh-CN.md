@@ -86,6 +86,10 @@ flowchart LR
 - **幂等写入**：基于消息指纹游标（`processed-sessions.json`）
 - **低噪告警**：同类异常需连续 2 次才告警
 - **成本可控**：日常仅 `qmd update`，周任务执行 `qmd update && qmd embed`
+- **记忆注入预算守卫（新增）**：每文件/总量双阈值，防止上下文膨胀
+- **动态 profile 注入（新增）**：按 `main/ops/btc/quant` 最小化注入
+- **长期记忆冲突检测（新增）**：写入前先查路由/规则漂移
+- **检索 watchdog + 夜间维护（新增）**：30 分钟健康巡检 + 夜间 `qmd update`/条件 `embed`
 - **开源标准完备**：文档、脚本、模板、CI、贡献规范齐全
 
 ## 架构概览
@@ -104,6 +108,12 @@ flowchart LR
 4. **Watchdog**（`memory-cron-watchdog`，每 2 小时在 :15 执行）
    - 监控 stale / error / disabled 状态
    - 仅在异常重复出现时告警
+5. **检索健康巡检**（`memory-retrieval-watchdog-v1`，每 30 分钟）
+   - 执行检索健康检查，并使用 2-hit 机制确认异常
+6. **夜间 QMD 维护**（`memory-qmd-nightly-maintain`，每日 03:20）
+   - 先 `qmd update`，仅当 pending 超阈值时执行 `qmd embed`
+7. **记忆注入预算 + 动态 profile**
+   - 通过硬阈值和优先级裁剪，控制注入上下文规模
 
 完整设计见：[`docs/architecture.md`](docs/architecture.md)
 
@@ -128,8 +138,13 @@ bash scripts/install-ai.sh --tz Asia/Shanghai
 > `scripts/install-ai.sh` 现已自动完成基座初始化：
 > - `memory/CURRENT_STATE.md`
 > - `memory/INDEX.md`
+> - `memory/context-profiles.json`
 > - `scripts/mem-log.sh`
 > - `scripts/memory-reflect.sh`
+> - `scripts/memory_context_budget_guard.py`
+> - `scripts/memory_context_pack.py`
+> - `scripts/memory_conflict_check.py`
+> - `scripts/memory_retrieval_watchdog.py`
 
 ```bash
 openclaw gateway restart
@@ -143,12 +158,17 @@ ls -l ~/.openclaw/workspace/memory/state/processed-sessions.json
 ls -l ~/.openclaw/workspace/memory/state/memory-watchdog-state.json
 ls -l ~/.openclaw/workspace/memory/CURRENT_STATE.md ~/.openclaw/workspace/memory/INDEX.md
 ls -l ~/.openclaw/workspace/scripts/mem-log.sh ~/.openclaw/workspace/scripts/memory-reflect.sh
+ls -l ~/.openclaw/workspace/memory/context-profiles.json
+ls -l ~/.openclaw/workspace/scripts/memory_context_budget_guard.py ~/.openclaw/workspace/scripts/memory_context_pack.py ~/.openclaw/workspace/scripts/memory_conflict_check.py ~/.openclaw/workspace/scripts/memory_retrieval_watchdog.py
+python3 ~/.openclaw/workspace/scripts/memory_context_budget_guard.py --profile main
 ```
 
 预期 cron 名称：
 - `memory-sync-daily`
 - `memory-weekly-tidy`
 - `memory-cron-watchdog`
+- `memory-retrieval-watchdog-v1`
+- `memory-qmd-nightly-maintain`
 
 ## 可选：安装 AI 友好的 workspace skills 包
 

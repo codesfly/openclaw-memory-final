@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "defaults": {
+    "max_per_file_chars": 20000,
+    "max_total_chars": 80000
+  },
+  "profiles": {
+    "main": {
+      "description": "主会话（私聊）上下文",
+      "max_total_chars": 80000,
+      "items": [
+        {"path": "SOUL.md", "priority": 100},
+        {"path": "USER.md", "priority": 95},
+        {"path": "AGENTS.md", "priority": 90},
+        {"path": "MEMORY.md", "priority": 85},
+        {"path": "memory/{today}.md", "priority": 80},
+        {"path": "memory/{yesterday}.md", "priority": 70}
+      ]
+    },
+    "ops": {
+      "description": "运维巡检任务上下文",
+      "max_total_chars": 60000,
+      "items": [
+        {"path": "AGENTS.md", "priority": 100},
+        {"path": "HEARTBEAT.md", "priority": 95},
+        {"path": "memory/{today}.md", "priority": 80},
+        {"path": "memory/{yesterday}.md", "priority": 70}
+      ]
+    },
+    "btc": {
+      "description": "BTC 交易任务上下文",
+      "max_total_chars": 60000,
+      "items": [
+        {"path": "AGENTS.md", "priority": 100},
+        {"path": "memory/{today}.md", "priority": 80},
+        {"path": "memory/{yesterday}.md", "priority": 70}
+      ]
+    },
+    "quant": {
+      "description": "RD/量化任务上下文",
+      "max_total_chars": 60000,
+      "items": [
+        {"path": "AGENTS.md", "priority": 100},
+        {"path": "memory/{today}.md", "priority": 80},
+        {"path": "memory/{yesterday}.md", "priority": 70}
+      ]
+    }
+  }
+}

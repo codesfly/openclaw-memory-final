@@ -90,6 +90,10 @@ Detailed view: [`docs/architecture.md`](docs/architecture.md)
 - **Idempotent capture**: message fingerprint cursor (`processed-sessions.json`)
 - **Low-noise alerting**: alert only after **2 consecutive anomalies**
 - **Cost-aware indexing**: daily `qmd update`, weekly `qmd update && qmd embed`
+- **Context budget guard (new)**: hard caps for per-file and total injected memory chars
+- **Dynamic profile injection (new)**: profile-based minimal context packs (`main/ops/btc/quant`)
+- **Conflict detection (new)**: scan durable memory for routing/rule drift before persisting changes
+- **Retrieval watchdog + nightly maintenance (new)**: 30-min health checks + nightly `qmd update`/conditional `embed`
 - **Open-source ready**: docs, scripts, templates, CI, contribution policy
 
 ## Architecture (at a glance)
@@ -108,6 +112,12 @@ Detailed view: [`docs/architecture.md`](docs/architecture.md)
 4. **Watchdog** (`memory-cron-watchdog`, every 2h at :15)
    - Checks stale/error/disabled state
    - Alerts only when anomaly repeats twice
+5. **Retrieval watchdog** (`memory-retrieval-watchdog-v1`, every 30m)
+   - Runs retrieval health checks and confirms anomalies with 2-hit logic
+6. **Nightly QMD maintenance** (`memory-qmd-nightly-maintain`, daily 03:20)
+   - Runs `qmd update`; runs `qmd embed` only when pending backlog exceeds threshold
+7. **Context budget + dynamic profile pack**
+   - Hard limits for injected context size, profile-based minimal inclusion
 
 See full design: [`docs/architecture.md`](docs/architecture.md)
 
@@ -125,8 +135,13 @@ Then:
 > `scripts/install-ai.sh` automatically bootstraps baseline files into workspace:
 > - `memory/CURRENT_STATE.md`
 > - `memory/INDEX.md`
+> - `memory/context-profiles.json`
 > - `scripts/mem-log.sh`
 > - `scripts/memory-reflect.sh`
+> - `scripts/memory_context_budget_guard.py`
+> - `scripts/memory_context_pack.py`
+> - `scripts/memory_conflict_check.py`
+> - `scripts/memory_retrieval_watchdog.py`
 
 ```bash
 openclaw gateway restart
@@ -140,12 +155,17 @@ ls -l ~/.openclaw/workspace/memory/state/processed-sessions.json
 ls -l ~/.openclaw/workspace/memory/state/memory-watchdog-state.json
 ls -l ~/.openclaw/workspace/memory/CURRENT_STATE.md ~/.openclaw/workspace/memory/INDEX.md
 ls -l ~/.openclaw/workspace/scripts/mem-log.sh ~/.openclaw/workspace/scripts/memory-reflect.sh
+ls -l ~/.openclaw/workspace/memory/context-profiles.json
+ls -l ~/.openclaw/workspace/scripts/memory_context_budget_guard.py ~/.openclaw/workspace/scripts/memory_context_pack.py ~/.openclaw/workspace/scripts/memory_conflict_check.py ~/.openclaw/workspace/scripts/memory_retrieval_watchdog.py
+python3 ~/.openclaw/workspace/scripts/memory_context_budget_guard.py --profile main
 ```
 
 Expected cron names:
 - `memory-sync-daily`
 - `memory-weekly-tidy`
 - `memory-cron-watchdog`
+- `memory-retrieval-watchdog-v1`
+- `memory-qmd-nightly-maintain`
 
 ## Optional: Install AI-friendly workspace skills pack
 
@@ -180,7 +200,7 @@ Notes:
 
 ## Safe Deployment Notes
 
-- `scripts/setup.sh` only manages `memory-*` cron jobs and state files.
+- `scripts/setup.sh` only manages `memory-*` cron jobs and memory-related state/helper files.
 - Existing memory jobs are kept by default. Use `--force-recreate` only when you really need replacement.
 - Avoid full `config.apply` with snippets. Use `config.patch` semantics for memory config.
 - If gateway behaves abnormally after deployment, follow [`docs/troubleshooting-gateway.md`](docs/troubleshooting-gateway.md).

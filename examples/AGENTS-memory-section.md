@@ -40,6 +40,15 @@ You wake up fresh each session. Files are your memory.
 2. Then run semantic memory search
 3. Drill into raw session history only when needed
 
+### Context budget + dynamic profile (V1)
+
+- Enforce hard budget before injecting memory/context into prompts:
+  - `max_per_file_chars=20000`
+  - `max_total_chars=80000`
+- Use `memory/context-profiles.json` to pick minimal context by profile (`main/ops/btc/quant`).
+- Run `scripts/memory_context_budget_guard.py` periodically and persist its state.
+- Run `scripts/memory_conflict_check.py` before writing durable long-term memory rules.
+
 ### Write-now rule
 
 When key decisions or durable user preferences appear, append to today's daily memory immediately.

@@ -28,19 +28,24 @@ get_ids() {
   json="$(run_oc cron list --json 2>/dev/null || echo '{"jobs":[]}')"
   LIST_JOBS_JSON="$json" python3 - "$name" <<'PY'
 import json, os, sys
-name=sys.argv[1]
-raw=os.environ.get("LIST_JOBS_JSON", "").strip() or '{"jobs":[]}'
+name = sys.argv[1]
+raw = os.environ.get("LIST_JOBS_JSON", "").strip() or '{"jobs":[]}'
 try:
-    data=json.loads(raw)
+    data = json.loads(raw)
 except Exception:
-    data={"jobs":[]}
-for j in data.get("jobs",[]):
-    if j.get("name")==name and j.get("id"):
+    data = {"jobs": []}
+for j in data.get("jobs", []):
+    if j.get("name") == name and j.get("id"):
         print(j["id"])
 PY
 }
 
-for name in memory-sync-daily memory-weekly-tidy memory-cron-watchdog; do
+for name in \
+  memory-sync-daily \
+  memory-weekly-tidy \
+  memory-cron-watchdog \
+  memory-retrieval-watchdog-v1 \
+  memory-qmd-nightly-maintain; do
   ids="$(get_ids "$name" || true)"
   for id in $ids; do
     run_oc cron remove "$id" >/dev/null 2>&1 || true
