@@ -203,10 +203,23 @@ openclaw skills list --eligible
 
 ## 安全部署说明
 
-- `scripts/setup.sh` 只管理 `memory-*` 三个 cron 和状态文件。
+- `scripts/setup.sh` 只管理 `memory-*` 相关 cron 和 memory 状态/辅助文件。
 - 默认保留已存在任务；仅在必要时使用 `--force-recreate` 覆盖。
 - 请勿把配置片段直接做全量 `config.apply`；应使用 patch 语义。
 - 若部署后 gateway 异常，按 [`docs/troubleshooting-gateway.md`](docs/troubleshooting-gateway.md) 排查。
+
+## 更新日志 / Release Notes
+
+- 完整日志：[`CHANGELOG.md`](CHANGELOG.md)
+- 最新发布：[`v0.4.0`](https://github.com/codesfly/openclaw-memory-final/releases/tag/v0.4.0)
+
+### v0.4.0 重点
+
+- 新增记忆注入预算 + 动态 profile 注入（`main/ops/btc/quant`）
+- 新增长期记忆冲突检测
+- 新增检索健康 watchdog + 夜间 QMD 维护
+- 升级 setup/uninstall/validate 脚本，覆盖 V1 记忆运维链路
+- 文档与安装核验流程同步升级
 
 ## 仓库结构
 

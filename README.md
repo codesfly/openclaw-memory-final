@@ -224,6 +224,19 @@ docs/                   # architecture/ops/prompts/migration
 
 This project follows **Semantic Versioning**.
 
+## Changelog / Release Notes
+
+- Full changelog: [`CHANGELOG.md`](CHANGELOG.md)
+- Latest release: [`v0.4.0`](https://github.com/codesfly/openclaw-memory-final/releases/tag/v0.4.0)
+
+### v0.4.0 highlights
+
+- Added context budget + dynamic profile injection (`main/ops/btc/quant`)
+- Added durable-memory conflict checker
+- Added retrieval watchdog + nightly QMD maintenance flow
+- Updated setup/uninstall/validate scripts for the new memory ops pipeline
+- Updated docs and install verification for V1 memory scheme
+
 ## License
 
 MIT — see [`LICENSE`](LICENSE).
